@@ -5,10 +5,12 @@ const io = require('socket.io');
 const Twitter = require('twitter');
 
 const config = require('./config');
+const webhook = require('./webhook');
 
 // instantiate web server
 const app = express();
 app.use('/', express.static(config.webInterfaceBuildFolder));
+webhook(app);
 
 // instantiate twitter client
 const twitter = new Twitter({
