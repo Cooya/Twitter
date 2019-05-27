@@ -7,18 +7,18 @@ const Twitter = require('twitter');
 const config = require('./config');
 const webhook = require('./webhook');
 
+// instantiate twitter client
+const twitter = new Twitter({
+	consumer_key: config.consumerKey,
+	consumer_secret: config.consumerSecret,
+	access_token_key: config.accessTokenKey,
+	access_token_secret: config.accessTokenSecret
+});
+
 // instantiate web server
 const app = express();
 app.use('/', express.static(config.webInterfaceBuildFolder));
-webhook(app);
-
-// instantiate twitter client
-const twitter = new Twitter({
-	consumer_key: config.twitterConsumerKey,
-	consumer_secret: config.twitterConsumerSecret,
-	access_token_key: config.twitterAccessTokenKey,
-	access_token_secret: config.twitterAccessTokenSecret
-});
+webhook(app, twitter);
 
 const server = http.Server(app); // wrap express app in a http server
 const socketServer = io(server); // add socket.io to the http server
