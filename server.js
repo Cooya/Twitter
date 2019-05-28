@@ -15,19 +15,22 @@ const twitter = new Twitter({
 	access_token_secret: config.accessTokenSecret
 });
 
-// instantiate web server
-const app = express();
-app.use('/', express.static(config.webInterfaceBuildFolder));
-webhook(app, twitter);
+(async () => {
+	// instantiate web server
+	const app = express();
+	app.use('/', express.static(config.webInterfaceBuildFolder));
+	await webhook(app, twitter);
 
-const server = http.Server(app); // wrap express app in a http server
-const socketServer = io(server); // add socket.io to the http server
-server.listen(config.port, () => { // launch the http server
-	logger.info('Server listening on port ' + config.port + '.');
-});
+	const server = http.Server(app); // wrap express app in a http server
+	const socketServer = io(server); // add socket.io to the http server
+	socketServer.of('twitter').on('connection', onClientConnection); // define socket server callback whenever a client is connected
 
-// define socket server callbacks
-socketServer.of('twitter').on('connection', socketClient => {
+	server.listen(config.port, () => { // launch the http server
+		logger.info('Server listening on port ' + config.port + '.');
+	});
+})();
+
+function onClientConnection(socketClient) {
 	logger.info('Twitter socket client connected.');
 
 	socketClient.on('streamingRequest', (request, callback) => {
@@ -52,7 +55,7 @@ socketServer.of('twitter').on('connection', socketClient => {
 	socketClient.on('error', error => {
 		logger.error(error);
 	});
-});
+}
 
 function startStreaming(socket, request) {
 	logger.info('Starting streaming...');

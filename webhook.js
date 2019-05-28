@@ -1,3 +1,4 @@
+
 const bodyParser = require('body-parser');
 const logger = require('@coya/logger')();
 const twitterWebhooks = require('twitter-webhooks');
@@ -18,12 +19,6 @@ module.exports = async (app, twitter) => {
 		app
 	});
 
-	const subscriptionConfig = {
-		userId: config.userId,
-		accessToken: config.accessTokenKey,
-		accessTokenSecret: config.accessTokenSecret
-	};
-
 	const webhooks = await userActivityWebhook.getWebhooks();
 	if(!webhooks.environments[0].webhooks.length) { // if there is no registered webhook yet
 		logger.info('Registering webhook...');
@@ -31,25 +26,53 @@ module.exports = async (app, twitter) => {
 		logger.info('Webhook registered successfully.');
 	}
 
-	try {
-		await userActivityWebhook.unsubscribe(subscriptionConfig);
-	} catch(e) {}
+	const subscriptionConfig = {
+		userId: config.userId,
+		accessToken: config.accessTokenKey,
+		accessTokenSecret: config.accessTokenSecret
+	};
 
-	// subscribe for a particular user activity
-	logger.info('Subscribing to user activity...');
-	const userActivity = await userActivityWebhook.subscribe(subscriptionConfig);
-	logger.info('Subscribed to user activity successfully.');
+	let userActivity;
+	const subscriptions = await userActivityWebhook.getSubscriptions();
+	if(!subscriptions.length) {
+		logger.info('Subscribing to user activity...');
+		userActivity = await userActivityWebhook.subscribe(subscriptionConfig);
+		logger.info('Subscribed to user activity successfully.');
+	} else userActivity = userActivityWebhook.getUserActivity({userId: subscriptions[0].userId});
 
-	// listen to favorite event
-	userActivity.on('favorite', data => {
-		logger.info(data);
-	});
+	logger.info('Webhook ready to receive events.');
+
+	// this seems to be not working
+	userActivity
+		.on('favorite', data => logger.info(data))
+		.on('tweet_create', data => logger.info(data))
+		.on('follow', data => logger.info(data))
+		.on('mute', data => logger.info(data))
+		.on('revoke', data => logger.info(data))
+		.on('direct_message', data => logger.info(data))
+		.on('direct_message_indicate_typing', data => logger.info(data))
+		.on('direct_message_mark_read', data => logger.info(data))
+		.on('tweet_delete', data => logger.info(data));
 
 	// listen to any user activity
-	userActivityWebhook.on('event', (event, userId, data) => {
-		logger.info(event);
-		logger.info(userId);
-		logger.info(data);
+	userActivityWebhook.on('event', async (event, userId, data) => {
+		if(event == 'tweet_create') {
+			logger.info(`The bot has been mentioned by "${data.user.screen_name}".`);
+
+			if(data.user.screen_name != config.personalTwitterAccount)
+				return;
+
+			// retweet the post
+			try {
+				logger.info('Retweeting the post...');
+				await twitter.post('statuses/retweet/' + data.in_reply_to_status_id_str, {});
+				logger.info('Anwsering to the comment...');
+				await twitter.post('statuses/update', {status: '@' + data.user.screen_name + ' Retweeted !', in_reply_to_status_id: data.in_reply_to_user_id});
+				logger.info('Done.');
+			} catch(e) {
+				logger.error(e);
+			}
+		} else logger.info(event, userId, data);
 	});
 
 	// listen to unknown payload (in case of api new features)
@@ -57,14 +80,4 @@ module.exports = async (app, twitter) => {
 		logger.info('unknown-event');
 		logger.info(rawData)
 	});
-
-	// userActivity
-	// 	.on('tweet_create', data => logger.info(data))
-	// 	.on('follow', data => logger.info(data))
-	// 	.on('mute', data => logger.info(data))
-	// 	.on('revoke', data => logger.info(data))
-	// 	.on('direct_message', data => logger.info(data))
-	// 	.on('direct_message_indicate_typing', data => logger.info(data))
-	// 	.on('direct_message_mark_read', data => logger.info(data))
-	// 	.on('tweet_delete', data => logger.info(data));
 };
