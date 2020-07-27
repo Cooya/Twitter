@@ -1,5 +1,5 @@
 node_modules
 build
+.vscode
 config.js
 deploy.sh
-push.sh
