@@ -56,7 +56,7 @@ const App = () => {
 				toast.success('Streaming started successfully.');
 			} else toast.error(response);
 		});
-	}
+	};
 
 	const stopStreaming = () => {
 		if (!streamingInProgress) {
@@ -72,13 +72,32 @@ const App = () => {
 
 	const replyToTweet = tweetId => {
 		socket.emit('replyToTweet', tweetId, response => {
-			if (response === 'ok') toast.success('Reply submitted successfuly.');
-			else toast.error(response);
+			if (response === 'ok') {
+				toast.success('Reply submitted successfuly.');
+				setTweets(tweets => {
+					const indexToRemove = tweets.findIndex(tweet => tweet.id === tweetId);
+					tweets.splice(indexToRemove, 1);
+					return [...tweets];
+				});
+			} else toast.error(response);
+		});
+	};
+
+	const deleteTweet = tweetId => {
+		socket.emit('deleteTweet', tweetId, response => {
+			if (response === 'ok') {
+				toast.success('Tweet deleted successfuly.');
+				setTweets(tweets => {
+					const indexToRemove = tweets.findIndex(tweet => tweet.id === tweetId);
+					tweets.splice(indexToRemove, 1);
+					return [...tweets];
+				});
+			} else toast.error(response);
 		});
 	};
 
 	return (
-		<div className="container">
+		<div className="container" style={{ marginBottom: '50px' }}>
 			<StreamingForm
 				startStreaming={startStreaming}
 				stopStreaming={stopStreaming}
@@ -88,6 +107,7 @@ const App = () => {
 				streamingInProgress={streamingInProgress}
 				tweets={tweets}
 				replyToTweet={replyToTweet}
+				deleteTweet={deleteTweet}
 			/>
 			<ToastContainer
 				hideProgressBar={true}

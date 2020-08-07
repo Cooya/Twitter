@@ -1,6 +1,6 @@
 const Twitter = require('twitter-lite');
 
-const config = require('./config');
+const config = require('../../config');
 
 const client = new Twitter({
 	consumer_key: config.consumerKey,
@@ -20,6 +20,20 @@ const client = new Twitter({
 // 	console.log(statuses.resources.labs);
 // })();
 
+// (async () => {
+// 	const tweets = await searchTweets('recherche AND maison OR appartement OR appart OR logement AND -filter:retweets AND -filter:replies');
+// 	console.log(tweets.map(status => status.text));
+// })();
+
+async function searchTweets(query, { count = 20 } = {}) {
+	const res = await client.get('search/tweets', {
+		q: query,
+		count,
+		result_type: 'recent'
+	});
+	return res.statuses;
+}
+
 async function replyToTweet(tweetId, status) {
 	await client.post('statuses/update', {
 		status,
@@ -30,4 +44,5 @@ async function replyToTweet(tweetId, status) {
 
 module.exports = {
 	replyToTweet,
+	searchTweets
 };

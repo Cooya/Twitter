@@ -3,10 +3,20 @@ const http = require('http');
 const io = require('socket.io');
 const logger = require('@coya/logger')();
 
-const config = require('./config');
-const { onClientConnection } = require('./streaming');
+const config = require('../config');
+const controllers = require('./controllers');
+const dbConnection = require('./database_connection');
+const streaming = require('./streaming');
+// const { startStreaming, endStreaming } = require('./twitter_api/streaming_api');
+const { startStreaming, endStreaming } = require('./twitter_api/polling_api');
 
 (async () => {
+	// initialize the streaming service
+	const onClientConnection = streaming(startStreaming, endStreaming, controllers);
+
+	// database connection
+	await dbConnection.connect();
+
 	// web server
 	const app = express();
 	app.use('/', express.static(config.webInterfaceBuildFolder || './build'));

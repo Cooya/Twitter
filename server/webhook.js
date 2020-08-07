@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const logger = require('@coya/logger')();
 const twitterWebhooks = require('twitter-webhooks');
 
-const config = require('./config');
+const config = require('../config');
 
 module.exports = async (app, twitter) => {
 	app.use(bodyParser.json());
@@ -38,7 +38,7 @@ module.exports = async (app, twitter) => {
 		logger.info('Subscribing to user activity...');
 		userActivity = await userActivityWebhook.subscribe(subscriptionConfig);
 		logger.info('Subscribed to user activity successfully.');
-	} else userActivity = userActivityWebhook.getUserActivity({userId: subscriptions[0].userId});
+	} else userActivity = userActivityWebhook.getUserActivity({ userId: subscriptions[0].userId });
 
 	logger.info('Webhook ready to receive events.');
 
@@ -67,7 +67,7 @@ module.exports = async (app, twitter) => {
 				logger.info('Retweeting the post...');
 				await twitter.post('statuses/retweet/' + data.in_reply_to_status_id_str, {});
 				logger.info('Anwsering to the comment...');
-				await twitter.post('statuses/update', {status: '@' + data.user.screen_name + ' Retweeted !', in_reply_to_status_id: data.in_reply_to_user_id});
+				await twitter.post('statuses/update', { status: '@' + data.user.screen_name + ' Retweeted !', in_reply_to_status_id: data.in_reply_to_user_id });
 				logger.info('Done.');
 			} catch(e) {
 				logger.error(e);
@@ -78,6 +78,6 @@ module.exports = async (app, twitter) => {
 	// listen to unknown payload (in case of api new features)
 	userActivityWebhook.on('unknown-event', rawData => {
 		logger.info('unknown-event');
-		logger.info(rawData)
+		logger.info(rawData);
 	});
 };
