@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 
 const StreamingForm = ({ startStreaming, stopStreaming, clearTweets }) => {
-	const [request, setRequest] = useState('recherche AND maison OR appartement OR appart OR logement');
+	const [request, setRequest] = useState('recherche OR cherche AND maison OR appartement OR appart OR logement OR loyer');
 
 	const startStreamingWrap = () => {
 		if(!request) toast.warn('Please type keyword(s) in the input.');
