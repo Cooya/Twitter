@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-const TweetList = ({ streamingInProgress, tweets, replyToTweet, deleteTweet }) => {
+const TweetList = ({ isStreaming, tweets, replyToTweet, deleteTweet }) => {
 	useEffect(() => {
 		if(!tweets.length)
 			return;
@@ -11,7 +11,7 @@ const TweetList = ({ streamingInProgress, tweets, replyToTweet, deleteTweet }) =
 	}, [tweets]);
 
 	return <section id="tweets">
-		{streamingInProgress ? <p>Streaming in progress, waiting for tweets matching your keywords...</p> : null}
+		{isStreaming ? <p>Streaming in progress, waiting for tweets matching your keywords...</p> : null}
 		{tweets.map(tweet =>
 			<div key={tweet.id}>
 				<div id={'tweet-' + tweet.id} className="tweet" />

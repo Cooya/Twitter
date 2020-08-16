@@ -4,8 +4,6 @@ const Tweet = require('./models/Tweet');
 
 module.exports = {
 	onNewTweets: async tweets => {
-		const Tweet = require('./models/Tweet');
-
 		console.log(`${tweets.length} tweets received.`);
 		
 		const tweetsToReturn = [];
@@ -23,6 +21,10 @@ module.exports = {
 		}));
 
 		return tweetsToReturn.sort((a, b) => a.tweetDate - b.tweetDate);
+	},
+
+	getTweets: async () => {
+		return await Tweet.find({ replyDate: null, isDeleted: false }).limit(20);
 	},
 
 	replyToTweet: async tweetId => {

@@ -9,22 +9,26 @@ let socket, index = 0;
 
 const App = () => {
 	const [tweets, setTweets] = useState([]);
-	const [streamingInProgress, setStreamingInProgress] = useState(false);
+	const [isStreaming, setStreaming] = useState(false);
 
 	useEffect(() => {
 		socket = io('/twitter');
 
 		socket.on('connect', () => {
 			toast.success('Connected to the socket server.');
+
+			socket.emit('isStreaming', response => {
+				setStreaming(response);
+			});
 		});
 
 		socket.on('disconnect', () => {
-			setStreamingInProgress(false);
+			setStreaming(false);
 			toast.success('Disconnected from the socket server.');
 		});
 
 		socket.on('stream_error', error => {
-			setStreamingInProgress(false);
+			setStreaming(false);
 			toast.error(error);
 		});
 
@@ -45,25 +49,20 @@ const App = () => {
 	}, []);
 
 	const startStreaming = request => {
-		if (streamingInProgress) {
-			toast.warn('Streaming already in progress.');
-			return;
-		}
-
-		socket.emit('streamingRequest', request, response => {
+		socket.emit('startStreaming', request, response => {
 			if (response === 'ok') {
-				setStreamingInProgress(true);
+				setStreaming(true);
 				toast.success('Streaming started successfully.');
 			} else toast.error(response);
 		});
 	};
 
 	const stopStreaming = () => {
-		if (!streamingInProgress) {
+		if (!isStreaming) {
 			toast.info('There is no streaming in progress.');
 			return;
 		}
-		setStreamingInProgress(false);
+		setStreaming(false);
 		socket.emit('stopStreaming', response => {
 			if (response === 'ok') toast.success('Streaming stopped successfully.');
 			else toast.error(response);
@@ -96,15 +95,24 @@ const App = () => {
 		});
 	};
 
+	const getTweets = () => {
+		socket.emit('getTweets', {}, response => {
+			if(response !== 'ok')
+				toast.error(response);
+		});
+	};
+
 	return (
 		<div className="container" style={{ marginBottom: '50px' }}>
 			<StreamingForm
+				isStreaming={isStreaming}
 				startStreaming={startStreaming}
 				stopStreaming={stopStreaming}
+				getTweets={getTweets}
 				clearTweets={() => setTweets([])}
 			/>
 			<TweetList
-				streamingInProgress={streamingInProgress}
+				isStreaming={isStreaming}
 				tweets={tweets}
 				replyToTweet={replyToTweet}
 				deleteTweet={deleteTweet}

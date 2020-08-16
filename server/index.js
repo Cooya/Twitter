@@ -8,11 +8,11 @@ const controllers = require('./controllers');
 const dbConnection = require('./database_connection');
 const streaming = require('./streaming');
 // const { startStreaming, endStreaming } = require('./twitter_api/streaming_api');
-const { startStreaming, endStreaming } = require('./twitter_api/polling_api');
+const { startStreaming, endStreaming, isStreaming } = require('./twitter_api/polling_api');
 
 (async () => {
 	// initialize the streaming service
-	const onClientConnection = streaming(startStreaming, endStreaming, controllers);
+	const onClientConnection = streaming(startStreaming, endStreaming, isStreaming, controllers);
 
 	// database connection
 	await dbConnection.connect();

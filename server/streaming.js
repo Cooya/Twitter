@@ -1,10 +1,10 @@
 const logger = require('@coya/logger')();
 
-module.exports = (startStreaming, endStreaming, { onNewTweets, replyToTweet, deleteTweet }) => {
+module.exports = (startStreaming, endStreaming, isStreaming, { onNewTweets, getTweets, replyToTweet, deleteTweet }) => {
 	return socketClient => {
-		logger.info('Twitter socket client connected.');
+		logger.info('Socket client connected.');
 
-		socketClient.on('streamingRequest', (query, callback) => {
+		socketClient.on('startStreaming', (query, callback) => {
 			logger.info('New streaming request received.');
 			startStreaming(socketClient, query, onNewTweets)
 				.then(() => callback('ok'))
@@ -20,6 +20,27 @@ module.exports = (startStreaming, endStreaming, { onNewTweets, replyToTweet, del
 				endStreaming(socketClient);
 				callback('ok');
 			} else callback('There is no streaming in progress.');
+		});
+
+		socketClient.on('isStreaming', callback => {
+			callback(isStreaming());
+		});
+
+		socketClient.on('getTweets', async (query, callback) => {
+			logger.info('Tweets list request received.');
+			getTweets(query)
+				.then(tweets => {
+					callback('ok');
+					for(let tweet of tweets) {
+						logger.info(`Emitting new tweet ${tweet.id}...`);
+						socketClient.emit('tweet', tweet);
+					}
+				})
+				.catch(error => {
+					logger.error(error);
+					callback(error.message);
+				});
+			
 		});
 
 		socketClient.on('replyToTweet', (tweetId, callback) => {
@@ -46,7 +67,7 @@ module.exports = (startStreaming, endStreaming, { onNewTweets, replyToTweet, del
 
 		socketClient.on('disconnect', () => {
 			logger.info('Socket client disconnected.');
-			endStreaming(socketClient);
+			// endStreaming(socketClient);
 		});
 
 		socketClient.on('error', error => {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 
-const StreamingForm = ({ startStreaming, stopStreaming, clearTweets }) => {
+const StreamingForm = ({ isStreaming, startStreaming, stopStreaming, getTweets, clearTweets }) => {
 	const [request, setRequest] = useState('recherche OR cherche AND maison OR appartement OR appart OR logement OR loyer');
 
 	const startStreamingWrap = () => {
@@ -21,10 +21,13 @@ const StreamingForm = ({ startStreaming, stopStreaming, clearTweets }) => {
 						<div className="12u$">
 							<ul className="actions">
 								<li>
-									<button onClick={startStreamingWrap}>Stream</button>
+									<button onClick={startStreamingWrap} disabled={isStreaming}>Start</button>
 								</li>
 								<li>
-									<button onClick={stopStreaming}>Stop</button>
+									<button onClick={stopStreaming} disabled={!isStreaming}>Stop</button>
+								</li>
+								<li>
+									<button onClick={getTweets}>Get</button>
 								</li>
 								<li>
 									<button onClick={clearTweets}>Clear</button>
