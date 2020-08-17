@@ -16,10 +16,8 @@ module.exports = (startStreaming, endStreaming, isStreaming, { onNewTweets, getT
 
 		socketClient.on('stopStreaming', callback => {
 			logger.info('Stop streaming request received.');
-			if (socketClient.stream) {
-				endStreaming(socketClient);
-				callback('ok');
-			} else callback('There is no streaming in progress.');
+			const error = endStreaming(socketClient);
+			callback(error || 'ok');
 		});
 
 		socketClient.on('isStreaming', callback => {

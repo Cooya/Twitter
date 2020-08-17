@@ -35,11 +35,12 @@ async function startStreaming(socketClient, query, onNewTweets) {
 
 function endStreaming() {
 	if(!activeStream)
-		return;
+		return 'There is not streaming in progress.';
 	
 	clearInterval(activeStream);
 	activeStream = null;
 	logger.info('End of polling.');
+	return null;
 }
 
 function isStreaming() {
