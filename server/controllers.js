@@ -24,7 +24,7 @@ module.exports = {
 	},
 
 	getTweets: async () => {
-		return await Tweet.find({ replyDate: null, isDeleted: false }).limit(20);
+		return await Tweet.find({ replyDate: null, isDeleted: false }).sort({ tweetDate: -1 }).limit(20);
 	},
 
 	replyToTweet: async tweetId => {
